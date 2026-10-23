@@ -117,8 +117,8 @@ Both thresholds are tunable in [`configs/config.yaml`](configs/config.yaml) (`de
 <div align="center">
 <table>
 <tr>
-<td align="center"><img src="docs/figures/risk_coverage_curve.png" width="380"><br><sub><b>Risk–coverage:</b> deferring more trades coverage for accuracy</sub></td>
-<td align="center"><img src="docs/figures/feedback_curve_control.png" width="380"><br><sub><b>Feedback learning curve:</b> corrections improve answers without fine-tuning</sub></td>
+<td align="center"><img src="docs/figures/risk_coverage_curve.png" width="380"><br><sub><b>Risk–coverage</b> (100 people, 9,564 questions): the 0.35 cutoff answers 80% of questions at 0.373 mean similarity</sub></td>
+<td align="center"><img src="docs/figures/feedback_curve_control.png" width="380"><br><sub><b>Feedback loop</b> (9 people, 95% CI): similarity jumps from 0.35 to ~0.56 after 5 corrections; a control using another person's answers rises almost as much</sub></td>
 </tr>
 </table>
 </div>
