@@ -242,6 +242,16 @@ deferral-twin/
 
 ---
 
+## 🤝 Contributing
+
+Issues and pull requests are welcome. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) first, and report privacy problems privately as described in [`SECURITY.md`](SECURITY.md).
+
+## 📝 Citation
+
+If you use this work, cite it with the metadata in [`CITATION.cff`](CITATION.cff) (GitHub's **Cite this repository** button), along with the Twin-2K-500 dataset (Toubia et al., 2025).
+
+---
+
 ## 👥 Team
 
 **AI & ML Final Review, Team 8**
