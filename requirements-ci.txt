@@ -11,6 +11,6 @@ fastapi
 uvicorn[standard]
 python-multipart
 httpx
-opencv-python-headless
+opencv-python-headless>=4.10,<5   # 5.0 dropped the Haar cascades (see bootstrap/locks/main-win.in)
 pillow
 google-genai
