@@ -9,7 +9,9 @@ Saved as twin/work_profile.json: {"title", "skills": [...], "about", "topics": [
 is saved, and used (with the job title and skills) to recognise field questions by embedding similarity.
 """
 import json
+import os
 import re
+import threading
 import time
 from pathlib import Path
 
@@ -41,7 +43,10 @@ def load(folder):
 
 def save(folder, w):
     Path(folder).mkdir(parents=True, exist_ok=True)
-    path(folder).write_text(json.dumps(w, ensure_ascii=False, indent=1), encoding="utf-8")
+    # write then rename, so the background topics job never leaves a half-written file for load()
+    tmp = path(folder).with_suffix(f".{os.getpid()}.{threading.get_ident()}.tmp")
+    tmp.write_text(json.dumps(w, ensure_ascii=False, indent=1), encoding="utf-8")
+    os.replace(tmp, path(folder))
 
 
 def clean(d):
