@@ -187,7 +187,10 @@ PYTHONHASHSEED=0 python scripts/dev_server.py --port 8000
 
 ### Tests
 
+No models needed: the suites use a stand-in for sentence-transformers.
+
 ```bash
+pip install -r requirements-ci.txt
 PYTHONHASHSEED=0 python tests/test_app.py
 ```
 
