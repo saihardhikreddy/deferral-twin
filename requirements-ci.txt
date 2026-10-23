@@ -1,0 +1,15 @@
+# Light dependencies for the test suites. The tests replace
+# sentence-transformers with tests/fake_st.py, so torch is not needed here.
+faiss-cpu>=1.8.0
+numpy>=1.26.0
+pandas>=2.2.0
+scikit-learn>=1.5.0
+pyyaml>=6.0
+tqdm>=4.66.0
+requests>=2.31.0
+fastapi
+uvicorn[standard]
+python-multipart
+httpx
+opencv-python-headless
+google-genai
