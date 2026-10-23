@@ -27,3 +27,10 @@ tools/character/work/
 *.log
 *.zip
 *.dmg
+
+# local tooling
+.venv/
+.pytest_cache/
+.idea/
+.vscode/
+Thumbs.db
