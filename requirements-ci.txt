@@ -12,4 +12,5 @@ uvicorn[standard]
 python-multipart
 httpx
 opencv-python-headless
+pillow
 google-genai
