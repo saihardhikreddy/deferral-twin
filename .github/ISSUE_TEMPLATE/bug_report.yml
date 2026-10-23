@@ -1,0 +1,38 @@
+name: Bug report
+description: Something in the twin or the app doesn't work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Answers / deferral gate
+        - Voice (XTTS-v2 / Whisper)
+        - Avatar video (Wav2Lip / LivePortrait)
+        - First-run setup / downloads
+        - Online mode (Gemini)
+        - App UI
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: machine
+    attributes:
+      label: Machine
+      placeholder: "e.g. M2 MacBook Air, 16 GB, macOS 15.1"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant output from the app or terminal. Remove anything personal first.
+      render: text
