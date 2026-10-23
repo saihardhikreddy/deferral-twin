@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use Deferral Twin, please cite it as below."
+title: "Deferral Twin: an honest digital twin"
+type: software
+authors:
+  - given-names: Sai Hardhik
+    family-names: C
+  - given-names: Gagan
+    family-names: Chowdary
+  - given-names: Charan
+    family-names: Saatvikh
+repository-code: "https://github.com/saihardhikreddy/deferral-twin"
+abstract: >-
+  A digital twin that answers in a person's own words, voice and face,
+  using retrieval over their interview answers and a confidence gate
+  that says "I don't know" when no evidence is close enough.
+keywords:
+  - digital twin
+  - retrieval-augmented generation
+  - selective prediction
+  - voice cloning
+references:
+  - type: dataset
+    title: "Twin-2K-500"
+    authors:
+      - family-names: Toubia
+        name-suffix: "et al."
+    year: 2025
+    url: "https://huggingface.co/datasets/LLM-Digital-Twin/Twin-2K-500"
