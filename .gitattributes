@@ -1,0 +1,24 @@
+# Normalise line endings so Windows and macOS checkouts stay identical
+* text=auto eol=lf
+
+# Windows scripts keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets: never diff or convert
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.icns binary
+*.pdf binary
+*.wav binary
+*.mp3 binary
+*.mp4 binary
+*.npy binary
+*.bin binary
+
+# Notebooks are generated JSON; keep them out of language stats
+*.ipynb linguist-generated
