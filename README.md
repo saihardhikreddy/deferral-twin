@@ -4,6 +4,7 @@
 
 ### An honest digital twin. It answers in your words, voice and face, and says *"I don't know"* when it isn't sure.
 
+[![Tests](https://github.com/saihardhikreddy/deferral-twin/actions/workflows/tests.yml/badge.svg)](https://github.com/saihardhikreddy/deferral-twin/actions/workflows/tests.yml)
 [![Platform](https://img.shields.io/badge/platform-macOS%2014%2B%20·%20Apple%20Silicon-black?logo=apple)](#-quickstart)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](requirements.txt)
 [![LLM](https://img.shields.io/badge/LLM-Phi--3--mini%204--bit%20·%20MLX-7B61FF)](src/llm_backend.py)
