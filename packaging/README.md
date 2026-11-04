@@ -22,7 +22,12 @@ From then on the app opens normally.
 
 Control-click → Open no longer gets past this on current macOS, so use the steps above.
 
-![Privacy & Security, with the Open Anyway button next to the message about Deferral Twin](gatekeeper.png)
+If you're comfortable with Terminal, this does the same in one step (it removes the "downloaded
+from the internet" mark from the app you dragged to Applications):
+
+```bash
+xattr -dr com.apple.quarantine /Applications/DeferralTwin.app
+```
 
 ## First launch
 
