@@ -20,7 +20,7 @@ keywords:
   - selective prediction
   - voice cloning
 references:
-  - type: dataset
+  - type: data
     title: "Twin-2K-500"
     authors:
       - family-names: Toubia
