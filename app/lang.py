@@ -86,7 +86,11 @@ def prepare(q, history, lang, gemini=None, translator=None):
             return q, f"{NAMES[lang]} questions need Online mode on this Mac; answering as best it can."
         text = t
     if history and is_follow_up(text, history):                   # offline: lean on the previous question
-        text = f"{history[-1].get('q', '').strip()} {text}".strip()
+        prev = (history[-1].get('q') or '').strip()
+        prev_lang = detect(prev)
+        if prev_lang != "en":                                     # retrieval is English: don't glue Hindi onto it
+            prev = (translator(prev, prev_lang, "en") if translator else None) or ""
+        text = f"{prev} {text}".strip()
     return text, None
 
 

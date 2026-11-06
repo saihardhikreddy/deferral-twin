@@ -17,6 +17,15 @@ def test_language_detection():
     assert not lang.is_follow_up("why?", [])
 
 
+
+def test_offline_hindi_follow_up_is_all_english():
+    # a fake Hindi -> English translator, as the Marian model would answer
+    table = {"आप क्या पीते हैं?": "What do you drink?", "और सुबह?": "And in the morning?"}
+    tr = lambda text, src, dst: table.get(text)  # noqa: E731
+    q, note = lang.prepare("और सुबह?", [{"q": "आप क्या पीते हैं?", "a": "Tea"}], "hi", translator=tr)
+    assert (q, note) == ("What do you drink? And in the morning?", None)
+
+
 def test_chat_memory_offline():
     st, c = built()
     h = [{"q": "Tea or coffee?", "a": "Tea"}]
