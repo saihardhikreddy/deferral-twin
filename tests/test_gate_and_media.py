@@ -3,7 +3,6 @@ Run from the project root:  python tests/test_gate_and_media.py   (or pytest)"""
 import json
 import sys
 import tempfile
-import threading
 import time
 import wave
 from pathlib import Path

@@ -17,7 +17,6 @@ import time
 from pathlib import Path
 
 import cv2
-import numpy as np
 import torch
 
 ARGS = [str(Path(a).resolve()) for a in sys.argv[1:]]     # before the chdir below

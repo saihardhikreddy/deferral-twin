@@ -78,7 +78,6 @@ def answer_and_score(store, rows, persona_summary, embedder, llm_batch_fn,
             c["pred"] = o
 
     scores = []
-    n_correction_hits = 0
     for it in items:
         if it["pred"] is None:
             continue
@@ -87,7 +86,7 @@ def answer_and_score(store, rows, persona_summary, embedder, llm_batch_fn,
         scores.append(it["score"])
     return {
         "mean_similarity": float(np.mean(scores)) if scores else None,
-        "coverage": len(scores) / len(items),
+        "coverage": len(scores) / len(items) if items else 0.0,
         "n_answered": len(scores),
         "n_questions": len(items),
     }

@@ -3,7 +3,6 @@ No network and no real Keychain: both are replaced with fakes.
 Run from the project root:  PYTHONHASHSEED=0 python tests/test_online.py"""
 import contextlib
 import io
-import json
 import logging
 import sys
 import tempfile

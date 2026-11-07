@@ -15,7 +15,6 @@ nothing.
 Only the subject of the twin should supply a voice and photo -- that is the
 consent boundary the interview page records.
 """
-import json
 import shutil
 import subprocess
 import sys

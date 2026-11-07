@@ -12,7 +12,6 @@ import json
 import os
 import re
 import threading
-import time
 from pathlib import Path
 
 WORK_FILE = "work_profile.json"
