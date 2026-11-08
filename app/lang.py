@@ -28,8 +28,16 @@ def detect(text):
     return "en"
 
 
+# "there" and "that" are often not pointing back at anything: "Are there foods you avoid?" (existential),
+# "Do you think that cities are better?" (a conjunction). Those uses are removed before looking for a reference.
+NOT_A_REFERENCE_RE = re.compile(r"\b(?:is|are|was|were|isn'?t|aren'?t)\s+there\b(?!\s*[?.!]*$)|"
+                                r"\b(?:think|thinks|say|says|said|believe|feel|know|hope|agree|mean|guess)\s+that\b"
+                                r"(?!\s*[?.!]*$|\s+(?:is|was|'s|would|will|sounds|seems|way|one|kind|much)\b)",   # "think that is fair": a pronoun
+                                re.I)
+
+
 def is_follow_up(q, history):
-    return bool(history) and len(q.split()) <= 9 and bool(FOLLOW_RE.search(q))
+    return bool(history) and len(q.split()) <= 9 and bool(FOLLOW_RE.search(NOT_A_REFERENCE_RE.sub(" ", q)))
 
 
 def history_text(history, n=6):

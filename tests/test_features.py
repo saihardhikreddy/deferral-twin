@@ -17,6 +17,20 @@ def test_language_detection():
     assert not lang.is_follow_up("why?", [])
 
 
+def test_existential_there_and_conjunction_that_are_not_follow_ups():
+    h = [{"q": "Tea or coffee?", "a": "Tea"}]
+    # New questions: offline, these used to get the previous question glued on before retrieval.
+    for q in ("Are there any foods you avoid?", "Is there a sport you love?",
+              "Do you think that remote work is better?", "Do you believe that people change?"):
+        assert not lang.is_follow_up(q, h), q
+    # Real references back still count.
+    for q in ("Why do you like that?", "Is that true?", "Would you go there again?",
+              "Do you think that is fair?", "Do you agree with that?", "I feel that way too, why?"):
+        assert lang.is_follow_up(q, h), q
+    q, _ = lang.prepare("Are there any foods you avoid?", h, "en")
+    assert q == "Are there any foods you avoid?"
+
+
 
 def test_offline_hindi_follow_up_is_all_english():
     # a fake Hindi -> English translator, as the Marian model would answer
@@ -99,6 +113,8 @@ def test_talk_needs_model():
 
 if __name__ == "__main__":
     test_language_detection()
+    test_existential_there_and_conjunction_that_are_not_follow_ups()
+    test_offline_hindi_follow_up_is_all_english()
     test_chat_memory_offline()
     test_telugu_and_hindi()
     test_decide()
