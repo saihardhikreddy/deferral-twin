@@ -35,6 +35,34 @@ def _jsonl(p):
         return [json.loads(line) for line in f]
 
 
+def summarize(rows, ceiling, pid="", n_taught=0):
+    """The Phase 2 numbers from scored rows ({"tier", "score"}; score None when deferred) and the
+    human self-retest similarities. Kept apart from main() so it can be tested without a model."""
+    scored = [r["score"] for r in rows if r["score"] is not None]
+    by_tier = defaultdict(list)
+    for r in rows:
+        by_tier[r["tier"]].append(r["score"])
+
+    confident = [s for s in by_tier["confident_answer"] if s is not None]
+    coverage = len(confident) / len(rows) if rows else 0.0
+
+    return {
+        "pid": pid, "n_test": len(rows),
+        "twin_mean": round(mean(scored), 4) if scored else None,
+        "human_ceiling": round(mean(ceiling), 4) if ceiling else None,
+        "pct_of_ceiling": (round(100 * mean(scored) / mean(ceiling), 1)
+                           if scored and ceiling and mean(ceiling) else None),
+        "confident_only_mean": round(mean(confident), 4) if confident else None,
+        "confident_coverage": round(coverage, 4),
+        "tiers": {t: {"n": len(by_tier[t]),
+                      "share": round(len(by_tier[t]) / len(rows), 4) if rows else 0.0,
+                      "mean": (round(mean([s for s in by_tier[t] if s is not None]), 4)
+                               if any(s is not None for s in by_tier[t]) else None)}
+                  for t in TIERS},
+        "n_corrections_in_memory": n_taught,
+    }
+
+
 def main(bench_root="data/benchmark/phase2", pid="phase2_me",
          llm_fn=None, llm_batch_fn=None, batch_size=8, out_name="phase2_results.json"):
     from sentence_transformers import util
@@ -72,29 +100,8 @@ def main(bench_root="data/benchmark/phase2", pid="phase2_me",
     # Human self-consistency: same person, same question, different wording.
     ceiling = [sim(b["answer"], b["reworded_answer"]) for b in baseline] if baseline else []
 
-    scored = [r["score"] for r in rows if r["score"] is not None]
-    by_tier = defaultdict(list)
-    for r in rows:
-        by_tier[r["tier"]].append(r["score"])
-
-    confident = [s for s in by_tier["confident_answer"] if s is not None]
-    coverage = len(confident) / len(rows) if rows else 0.0
-
-    summary = {
-        "pid": pid, "n_test": len(rows),
-        "twin_mean": round(mean(scored), 4) if scored else None,
-        "human_ceiling": round(mean(ceiling), 4) if ceiling else None,
-        "pct_of_ceiling": (round(100 * mean(scored) / mean(ceiling), 1)
-                           if scored and ceiling and mean(ceiling) else None),
-        "confident_only_mean": round(mean(confident), 4) if confident else None,
-        "confident_coverage": round(coverage, 4),
-        "tiers": {t: {"n": len(by_tier[t]),
-                      "share": round(len(by_tier[t]) / len(rows), 4) if rows else 0.0,
-                      "mean": (round(mean([s for s in by_tier[t] if s is not None]), 4)
-                               if any(s is not None for s in by_tier[t]) else None)}
-                  for t in TIERS},
-        "n_corrections_in_memory": sess.n_taught,
-    }
+    summary = summarize(rows, ceiling, pid=pid, n_taught=sess.n_taught)
+    coverage = summary["confident_coverage"]
     with open(pdir / out_name, "w", encoding="utf-8") as f:
         json.dump({"summary": summary, "rows": rows}, f, ensure_ascii=False, indent=2)
 

@@ -127,9 +127,27 @@ def test_unmeasured_mac_gives_no_estimate():
     assert Estimates(Path(tempfile.mkdtemp()) / "none.json").video_seconds(10, False) is None
 
 
+def test_phase2_summary_counts_deferrals_but_does_not_score_them():
+    """Hard defers lower coverage, never the twin's mean; % of ceiling is twin mean / human retest."""
+    from eval_phase2 import summarize
+    rows = [{"tier": "confident_answer", "score": 0.8}, {"tier": "confident_answer", "score": 0.6},
+            {"tier": "soft_answer", "score": 0.4}, {"tier": "hard_defer", "score": None}]
+    s = summarize(rows, [0.9, 0.7], pid="p", n_taught=2)
+    assert s["n_test"] == 4 and s["n_corrections_in_memory"] == 2
+    assert s["twin_mean"] == 0.6 and s["human_ceiling"] == 0.8 and s["pct_of_ceiling"] == 75.0
+    assert s["confident_only_mean"] == 0.7 and s["confident_coverage"] == 0.5
+    assert s["tiers"]["hard_defer"] == {"n": 1, "share": 0.25, "mean": None}
+    assert s["tiers"]["soft_answer"]["mean"] == 0.4
+    # no baseline file, and a twin that deferred everything: no numbers made up
+    s = summarize([{"tier": "hard_defer", "score": None}], [])
+    assert s["twin_mean"] is None and s["human_ceiling"] is None and s["pct_of_ceiling"] is None
+    assert s["confident_coverage"] == 0.0 and summarize([], [])["n_test"] == 0
+
+
 if __name__ == "__main__":
     test_boost_never_reaches_the_gate()
     test_video_never_blocks_voice_and_clips_are_cached()
     test_latest_correction_wins()
     test_unmeasured_mac_gives_no_estimate()
+    test_phase2_summary_counts_deferrals_but_does_not_score_them()
     print("gate and media checks passed")
