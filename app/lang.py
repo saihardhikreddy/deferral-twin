@@ -19,13 +19,17 @@ FOLLOW_RE = re.compile(r"^\s*(?:and|but|so|also|then|why|how come|what about|how
                        r"\b(?:it|that|this|those|these|they|them|there|then|he|she|him|her|one)\b", re.I)
 
 
+LATIN = re.compile(r"[A-Za-z]")
+
+
 def detect(text):
+    """The language whose script holds most of the letters. A single word in another script used
+    to decide it: an English answer that mentions "दाल" counted as Hindi, so reply_in left it
+    untranslated, and a Hindi question quoting a Telugu place name was taken for Telugu."""
     t = text or ""
-    if TELUGU.search(t):
-        return "te"
-    if DEVANAGARI.search(t):
-        return "hi"
-    return "en"
+    counts = {"te": len(TELUGU.findall(t)), "hi": len(DEVANAGARI.findall(t)), "en": len(LATIN.findall(t))}
+    best = max(counts, key=lambda k: (counts[k], k != "en"))   # on a tie, prefer the Indian script
+    return best if counts[best] else "en"
 
 
 # "there" and "that" are often not pointing back at anything: "Are there foods you avoid?" (existential),

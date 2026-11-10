@@ -12,6 +12,11 @@ def test_language_detection():
     assert lang.detect("Which city is home?") == "en"
     assert lang.detect("आपका घर कहाँ है?") == "hi"
     assert lang.detect("మీ ఊరు ఏది?") == "te"
+    # the script with most of the letters wins, not the first non-Latin character
+    assert lang.detect("I usually have दाल with rice on weekdays.") == "en"
+    assert lang.detect("क्या आपको विजयवाड़ा (విజయవాడ) पसंद है?") == "hi"
+    assert lang.detect("मुझे iPhone पसंद है") == "hi"
+    assert lang.detect("") == "en" and lang.detect("123 ?") == "en"
     assert lang.is_follow_up("why?", [{"q": "Tea or coffee?", "a": "Tea"}])
     assert not lang.is_follow_up("Which city do you call home?", [{"q": "Tea or coffee?", "a": "Tea"}])
     assert not lang.is_follow_up("why?", [])
