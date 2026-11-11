@@ -101,13 +101,19 @@ class Profile:
     n_answers: int = 0
 
     # ---- rendering ----
+    @staticmethod
+    def reads_as(trait, d):
+        """What a trait score says about the person. A mixed score names both poles: before,
+        50/100 was described as fully one pole ('mixed (50/100) -- outgoing, energised by
+        people'), so the twin played a middling trait as a strong one."""
+        low, high = TRAIT_POLES[trait]
+        if d.get("band") == "mixed":
+            return f"between {low} and {high}"
+        return high if d["score"] >= 50 else low
+
     def trait_lines(self):
-        out = []
-        for t, d in self.traits.items():
-            low, high = TRAIT_POLES[t]
-            pole = high if d["score"] >= 50 else low
-            out.append(f"{t.replace('_', ' ')}: {d['band']} ({d['score']}/100) -- {pole}")
-        return out
+        return [f"{t.replace('_', ' ')}: {d['band']} ({d['score']}/100) -- {self.reads_as(t, d)}"
+                for t, d in self.traits.items()]
 
     def narrative(self, max_precedents=6):
         """Compact prompt text. Kept short so it does not crowd out retrieved facts."""
@@ -133,9 +139,7 @@ class Profile:
             out.append("| Trait | Score | Reads as |")
             out.append("|---|---|---|")
             for t, d in self.traits.items():
-                low, high = TRAIT_POLES[t]
-                pole = high if d["score"] >= 50 else low
-                out.append(f"| {t.replace('_', ' ').title()} | **{d['score']}**/100 ({d['band']}) | {pole} |")
+                out.append(f"| {t.replace('_', ' ').title()} | **{d['score']}**/100 ({d['band']}) | {self.reads_as(t, d)} |")
             out.append("")
         if self.style:
             out.append("**Decision style:** " + "; ".join(self.style) + "\n")

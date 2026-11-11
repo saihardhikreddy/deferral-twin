@@ -116,6 +116,26 @@ def test_talk_needs_model():
     assert c.post("/api/transcribe", files={"file": ("a.webm", b"xx", "audio/webm")}).status_code == 409
 
 
+def test_mixed_trait_names_both_poles():
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+    from persona import TRAIT_ITEMS, build_profile  # noqa: E402
+
+    def likert(frag, v):
+        return {"section": "What you believe", "question": frag, "answer": f"x ({v} of 5)"}
+
+    # extraversion items: +1, -1, -1, +1. Answers 3,3,3,3 score 50 (mixed); 5,1,1,5 score 100.
+    ext = [k for k, (t, _) in TRAIT_ITEMS.items() if t == "extraversion"]
+    mid = build_profile([likert(f, 3) for f in ext], name="Test")
+    line = mid.trait_lines()[0]
+    assert "mixed (50/100)" in line
+    assert "between reserved, keeps to a small circle and outgoing, energised by people" in line
+    assert "between" in mid.as_markdown()
+    high = build_profile([likert(f, v) for f, v in zip(ext, (5, 1, 1, 5))], name="Test")
+    assert high.trait_lines()[0].endswith("-- outgoing, energised by people")
+    low = build_profile([likert(f, v) for f, v in zip(ext, (1, 5, 5, 1))], name="Test")
+    assert low.trait_lines()[0].endswith("-- reserved, keeps to a small circle")
+
+
 if __name__ == "__main__":
     test_language_detection()
     test_existential_there_and_conjunction_that_are_not_follow_ups()
@@ -125,4 +145,5 @@ if __name__ == "__main__":
     test_decide()
     test_bigfive()
     test_talk_needs_model()
+    test_mixed_trait_names_both_poles()
     print("feature checks passed")
