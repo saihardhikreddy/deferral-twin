@@ -122,6 +122,47 @@ def test_latest_correction_wins():
     assert abs(conf - float(np.dot(emb[0], emb[1]))) < 1e-5
 
 
+def test_many_recorrections_do_not_crowd_out_other_facts():
+    """Each re-correction leaves the old one in the index, marked superseded. A question corrected
+    20 times still gets top_k live facts back, including the latest correction."""
+    import rag_pipeline
+    d = Path(tempfile.mkdtemp())
+    facts = d / "facts.jsonl"
+    hobbies = ["cricket", "chess", "drawing", "cycling", "trekking", "cooking", "gaming", "reading"]
+    facts.write_text("\n".join(json.dumps({"text": f"Q: Childhood hobbies?\nA: {h}", "source": "interview"})
+                               for h in hobbies))
+    cfg = rag_pipeline.load_config()
+    cfg["paths"] = dict(cfg["paths"], qa_facts_file=str(facts))
+    cfg["rag"] = dict(cfg["rag"], index_path=str(d / "i.bin"), top_k=8)
+    st = rag_pipeline.RagStore(cfg)
+    st.build()
+    st.load()
+    for i in range(20):
+        st.add_fact(f"Q: Which hobbies do you enjoy?\nA: hobbies enjoy version {i}",
+                    source="user_correction", persist=False)
+    res, _ = st.retrieve("Which hobbies do you enjoy?")
+    texts = [r["text"] for r in res]
+    assert len(res) == 8, texts
+    assert any("version 19" in t for t in texts), texts
+    assert not any(f"version {i}\n" in t + "\n" for i in range(19) for t in texts), texts
+
+
+def test_retrieve_from_an_empty_store():
+    import rag_pipeline
+    d = Path(tempfile.mkdtemp())
+    facts = d / "facts.jsonl"
+    facts.write_text(json.dumps({"text": "Q: Home?\nA: Hyderabad", "source": "interview"}))
+    cfg = rag_pipeline.load_config()
+    cfg["paths"] = dict(cfg["paths"], qa_facts_file=str(facts))
+    cfg["rag"] = dict(cfg["rag"], index_path=str(d / "i.bin"))
+    st = rag_pipeline.RagStore(cfg)
+    st.build()
+    st.load()
+    st.index.reset()
+    st.facts = []
+    assert st.retrieve("anything") == ([], 0.0)
+
+
 def test_unmeasured_mac_gives_no_estimate():
     from app.media import Estimates
     assert Estimates(Path(tempfile.mkdtemp()) / "none.json").video_seconds(10, False) is None
@@ -148,6 +189,8 @@ if __name__ == "__main__":
     test_boost_never_reaches_the_gate()
     test_video_never_blocks_voice_and_clips_are_cached()
     test_latest_correction_wins()
+    test_many_recorrections_do_not_crowd_out_other_facts()
+    test_retrieve_from_an_empty_store()
     test_unmeasured_mac_gives_no_estimate()
     test_phase2_summary_counts_deferrals_but_does_not_score_them()
     print("gate and media checks passed")

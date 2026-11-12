@@ -112,7 +112,14 @@ class RagStore:
         q_emb = self.embedder.encode([query], normalize_embeddings=True)
         q_emb = np.array(q_emb, dtype="float32")
 
-        fetch = min(top_k * 2, self.index.ntotal)
+        # Superseded corrections stay in the index (FAISS can't drop one cheaply) and are
+        # skipped below. They sit right next to the question they answered, so after a few
+        # re-corrections they filled the whole top_k * 2 window and the query came back with
+        # fewer facts than top_k, or none. Fetch enough to see past them.
+        superseded = sum(1 for f in self.facts if f.get("superseded"))
+        fetch = min(top_k * 2 + superseded, self.index.ntotal)
+        if fetch <= 0:
+            return [], 0.0
         scores, idxs = self.index.search(q_emb, fetch)
         scores, idxs = scores[0], idxs[0]
 
