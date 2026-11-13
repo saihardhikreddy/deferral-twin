@@ -136,6 +136,18 @@ def test_mixed_trait_names_both_poles():
     assert low.trait_lines()[0].endswith("-- reserved, keeps to a small circle")
 
 
+def test_ai_talk_filter_keeps_a_person_who_works_on_ai():
+    """Only the model describing itself is dropped; an AI engineer's own work stays in the answer."""
+    from deferral import strip_ai_talk
+    work = ("I build AI assistants and language models for a living. "
+            "My thesis compares large language models on Telugu.")
+    assert strip_ai_talk(work) == work
+    assert strip_ai_talk("As an AI language model, I can't have opinions. I love biryani.") == "I love biryani."
+    for slip in ("I'm just an AI.", "I am a large language model.", "I'm an AI assistant.",
+                 "I don't have personal opinions.", "As a language model I cannot say."):
+        assert strip_ai_talk(slip) == "", slip
+
+
 if __name__ == "__main__":
     test_language_detection()
     test_existential_there_and_conjunction_that_are_not_follow_ups()
@@ -146,4 +158,5 @@ if __name__ == "__main__":
     test_bigfive()
     test_talk_needs_model()
     test_mixed_trait_names_both_poles()
+    test_ai_talk_filter_keeps_a_person_who_works_on_ai()
     print("feature checks passed")

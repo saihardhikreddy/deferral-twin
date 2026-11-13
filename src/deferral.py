@@ -52,10 +52,13 @@ CLOCK_RE = re.compile(
     r"^\s*(what('?s|\s+is)\s+the\s+(current\s+)?time(\s+now)?|what\s+time\s+is\s+it(\s+now)?|time\s+now"
     r"|what('?s|\s+is)\s+(the\s+)?(date|day)(\s+today)?|what('?s|\s+is)\s+today'?s\s+date|today'?s\s+date"
     r"|what\s+day\s+is\s+(it|today)(\s+today)?|which\s+day\s+is\s+(it|today))" + END, re.I)
-# Self-descriptions a small model slips into; never in character for a digital twin.
-AI_TALK_RE = re.compile(r"\b(as an ai|i(?:'m| am) (?:just |only )?an ai\b|i(?:'m| am) not an ai|"
-                        r"ai (?:language )?model|large language model|language model|ai assistant|"
-                        r"virtual assistant|i don'?t have (?:personal )?(?:feelings|experiences|opinions)|"
+# Self-descriptions a small model slips into; never in character for a digital twin. Only the
+# model talking about itself counts: "language model" or "AI assistant" on their own also matched
+# a person who works on them ("I build AI assistants and language models"), and the twin of an
+# AI engineer lost those sentences, or the whole answer.
+_AI_SELF = r"(?:ai|a\.i\.|(?:large )?language model|llm|ai (?:language )?model|ai assistant|virtual assistant|chatbot)"
+AI_TALK_RE = re.compile(r"\b(as an? " + _AI_SELF + r"\b|i(?:'m| am) (?:just |only |merely )?an? " + _AI_SELF + r"\b|"
+                        r"i(?:'m| am) not an ai\b|i don'?t have (?:personal )?(?:feelings|experiences|opinions)|"
                         r"(?:can(?:no|')t|cannot) (?:assist|help) with (?:that|this))", re.I)
 
 # Answering in the person's own format. Interviews mix free text, 1-to-5 ratings of statements
