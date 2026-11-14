@@ -194,7 +194,7 @@ pip install -r requirements-ci.txt
 PYTHONHASHSEED=0 python tests/test_app.py
 ```
 
-The other suites in [`tests/`](tests/) cover the gate, media, online mode, features and setup. `ffmpeg` must be on your `PATH`.
+The other suites in [`tests/`](tests/) cover the gate, media, online mode, features, setup and the Twin-2K-500 conversion. `ffmpeg` must be on your `PATH`.
 
 ---
 

@@ -16,7 +16,16 @@ def load_raw_dataset(config_name: str = "wave_split"):
     return load_dataset("LLM-Digital-Twin/Twin-2K-500", config_name)
 
 
+def _blank(value) -> bool:
+    """An unanswered item: None, an empty string, or an empty list/dict."""
+    return value is None or (isinstance(value, (str, list, dict)) and not (value.strip() if isinstance(value, str) else value))
+
+
 def _stringify_answer(answers: dict) -> str:
+    """The answer as text, or "" when the participant skipped the question. (A skipped question
+    has an empty Answers dict, which used to come out as the literal answer "{}".)"""
+    if _blank(answers):
+        return ""
     if not isinstance(answers, dict):
         return str(answers)
     if "SelectedText" in answers:
@@ -45,14 +54,19 @@ def parse_persona_json(json_str: str) -> list:
     except (json.JSONDecodeError, TypeError):
         return []
 
+    if not isinstance(blocks, list):
+        return []
+
     qa_pairs = []
     for block in blocks:
-        for q in block.get("Questions", []):
-            if q.get("is_descriptive"):
+        if not isinstance(block, dict):
+            continue
+        for q in block.get("Questions") or []:
+            if not isinstance(q, dict) or q.get("is_descriptive"):
                 continue
-            qtype = q.get("QuestionType", "")
-            qtext = q.get("QuestionText", "").strip()
-            answers = q.get("Answers", {})
+            qtype = q.get("QuestionType") or ""
+            qtext = (q.get("QuestionText") or "").strip()
+            answers = q.get("Answers") or {}
 
             if qtype == "Matrix" and "Rows" in q:
                 rows = q["Rows"]
@@ -60,7 +74,7 @@ def parse_persona_json(json_str: str) -> list:
                 if not isinstance(selected, list):
                     selected = [selected]
                 for row, ans in zip(rows, selected):
-                    if qtext and row:
+                    if qtext and row and not _blank(ans):  # skip rows left unanswered
                         qa_pairs.append({"question": f"{qtext} -- {row}", "answer": str(ans)})
             elif qtype == "Slider" and "Statements" in q:
                 statements = q["Statements"]
@@ -68,10 +82,12 @@ def parse_persona_json(json_str: str) -> list:
                 if not isinstance(values, list):
                     values = [values]
                 for stmt, val in zip(statements, values):
+                    if _blank(val):
+                        continue
                     label = f"{qtext} -- {stmt}" if stmt else qtext
                     qa_pairs.append({"question": label, "answer": str(val)})
             else:
-                ans_str = _stringify_answer(answers)
+                ans_str = _stringify_answer(answers).strip()
                 if qtext and ans_str:
                     qa_pairs.append({"question": qtext, "answer": ans_str})
     return qa_pairs

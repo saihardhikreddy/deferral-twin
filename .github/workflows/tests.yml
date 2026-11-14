@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [app, features, game, gate_and_media, online, engine]
+        suite: [app, features, game, gate_and_media, online, engine, data_loader]
     env:
       PYTHONHASHSEED: "0"
     steps:
