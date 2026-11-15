@@ -50,6 +50,13 @@ def convert(answers_path, out_root="data/benchmark/phase2", pid="phase2_me",
     if len(answers) < 20:
         raise SystemExit(f"Only {len(answers)} answered questions. Fill in more of the interview first.")
 
+    # A reworded repeat whose original was skipped is the person's only answer to that question.
+    # It used to be dropped (no pair for the baseline, and repeats never go to train or test),
+    # so the twin lost an answer the person gave. Use it as an ordinary answer instead.
+    answered = {a["id"] for a in answers}
+    answers = [dict(a, repeat_of=None) if a.get("repeat_of") and a["repeat_of"] not in answered else a
+               for a in answers]
+
     by_id = {a["id"]: a for a in answers}
     repeats = [a for a in answers if a.get("repeat_of")]
     originals = [a for a in answers if not a.get("repeat_of")]
