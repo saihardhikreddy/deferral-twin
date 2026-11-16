@@ -80,6 +80,16 @@ CHAT_RE = re.compile(r"^\s*(?:hi|hello|hey|thanks|thank you|ok|okay|bye|good (?:
 LEAD_RE = re.compile(r"^\s*(?:oh|well|hmm|ah|haha|hey|honestly|so)\b[,!.]*\s*", re.I)
 
 
+_CURLY = str.maketrans({"\u2018": "'", "\u2019": "'", "\u02bc": "'", "\u201c": '"', "\u201d": '"'})
+
+
+def plain(text):
+    """Text with typographic quotes made straight, for the patterns above. Phones and Macs type
+    "What\u2019s the time?" and "I\u2019m an AI", which the patterns' plain ' never matched: the
+    clock and self questions went to retrieval, and the model's self-talk stayed in."""
+    return (text or "").translate(_CURLY)
+
+
 def qa_parts(text):
     """'Q: ...\nA: ...' -> (question, answer)."""
     q, _, a = (text or "").partition("\nA:")
@@ -89,7 +99,7 @@ def qa_parts(text):
 def strip_ai_talk(text):
     """Drop sentences where the model calls itself an AI. Returns '' if nothing is left."""
     parts = re.split(r"(?<=[.!?])\s+", (text or "").strip())
-    return " ".join(x for x in parts if x and not AI_TALK_RE.search(x)).strip()
+    return " ".join(x for x in parts if x and not AI_TALK_RE.search(plain(x))).strip()
 
 
 def format_context(results) -> str:
@@ -279,10 +289,10 @@ class DeferralAwareTwin:
         if self.profile is None:
             return None
         words = len(query.split())
-        statement = "?" not in query and 3 <= words <= 24 and not CHAT_RE.match(query) and not ASKED_RE.match(query)
+        statement = "?" not in query and 3 <= words <= 24 and not CHAT_RE.match(plain(query)) and not ASKED_RE.match(plain(query))
         if statement and any(RATED_RE.search(r["text"]) for r in results[:5]):   # a statement to rate, like the interview's
             return self._rated(query, results)
-        m = CHOICE_RE.match(query)
+        m = CHOICE_RE.match(plain(query))
         if m:
             return self._choice(query, m, results, context_text)
         return None
@@ -304,7 +314,7 @@ class DeferralAwareTwin:
             taught.sort(key=lambda t: max((i for i, f in enumerate(facts) if f == t), default=-1), reverse=True)
             for t in taught:
                 text = t.split("\nA:", 1)[-1].strip()
-                if text and not AI_TALK_RE.search(text):
+                if text and not AI_TALK_RE.search(plain(text)):
                     said = text.rstrip(". ") + ". "
                     break
         if re.search(r"\b(ai|a\.i\.|bot|robot|human|real|machine|computer|program|person)\W*$", query, re.I):
@@ -338,11 +348,11 @@ class DeferralAwareTwin:
 
     def respond(self, query: str) -> TwinResponse:
         if self.profile is not None:
-            if CLOCK_RE.search(query or ""):
+            if CLOCK_RE.search(plain(query)):
                 return self._clock()
-            if SELF_RE.search(query or ""):
+            if SELF_RE.search(plain(query)):
                 return self._about_twin(query)
-            if GREET_RE.match(query or ""):
+            if GREET_RE.match(plain(query)):
                 first = self._first_name()
                 return TwinResponse(answer=f"Hi! I'm {first}'s digital twin. Ask me what I think, what I'd do, "
                                            f"or how I spend my days, and I'll answer the way {first} would.",
@@ -412,7 +422,7 @@ class DeferralAwareTwin:
                 f"Context:\n{context_text}"
             )
         answer = shaped or self._clean(self.llm_generate_fn(system_prompt, query, results))
-        if self.profile is not None and near and not shaped and DONT_KNOW_RE.match(answer):
+        if self.profile is not None and near and not shaped and DONT_KNOW_RE.match(plain(answer)):
             answer = qa_parts(near["text"])[1] or answer       # they did answer this: use their own words
         return TwinResponse(
             answer=answer,

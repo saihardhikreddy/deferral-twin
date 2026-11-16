@@ -195,7 +195,8 @@ class State:
         w = work.load(self.p.twin)
         if not w:
             self.derive_work(sess)                        # from the interview answers, once, in the background
-        if not w or deferral.CLOCK_RE.search(q) or deferral.SELF_RE.search(q) or deferral.GREET_RE.match(q):
+        pq = deferral.plain(q)
+        if not w or deferral.CLOCK_RE.search(pq) or deferral.SELF_RE.search(pq) or deferral.GREET_RE.match(pq):
             return None
         results, confidence = sess.store.retrieve(q)
         if confidence >= sess.twin.threshold:
@@ -298,7 +299,8 @@ class State:
         import datetime
         import deferral
         twin = sess.twin
-        if deferral.CLOCK_RE.search(q) or deferral.SELF_RE.search(q) or deferral.GREET_RE.match(q):
+        pq = deferral.plain(q)                            # "What\u2019s the time?" typed on a phone
+        if deferral.CLOCK_RE.search(pq) or deferral.SELF_RE.search(pq) or deferral.GREET_RE.match(pq):
             return None                                   # answered locally from the clock or a template
         results, confidence = sess.store.retrieve(q)
         if confidence < twin.hard_floor:
@@ -1313,7 +1315,7 @@ def create_app(state: State) -> FastAPI:
             except json.JSONDecodeError:
                 continue
             k = rag_pipeline._question_key("Q: " + r["question"])
-            if k in seen or k in taught or deferral.GREET_RE.match(r["question"]):
+            if k in seen or k in taught or deferral.GREET_RE.match(deferral.plain(r["question"])):
                 continue
             seen.add(k)
             items.append(r)

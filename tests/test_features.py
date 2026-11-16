@@ -146,6 +146,10 @@ def test_ai_talk_filter_keeps_a_person_who_works_on_ai():
     for slip in ("I'm just an AI.", "I am a large language model.", "I'm an AI assistant.",
                  "I don't have personal opinions.", "As a language model I cannot say."):
         assert strip_ai_talk(slip) == "", slip
+    # the same self-talk typed with typographic apostrophes, as Gemini and phones do
+    for slip in ("I\u2019m just an AI.", "I don\u2019t have personal opinions."):
+        assert strip_ai_talk(slip) == "", slip
+    assert strip_ai_talk("I\u2019m an AI language model. I love biryani.") == "I love biryani."
 
 
 if __name__ == "__main__":

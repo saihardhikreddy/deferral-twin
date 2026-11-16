@@ -105,6 +105,11 @@ def test_online_answers_and_gate_unchanged():
     assert r["tier"] == "hard_defer" and len(calls["generate"]) == n and r.get("mode") is None
     # identity and the clock stay local templates
     assert c.post("/api/ask", json={"question": "who are you"}).json()["tier"] == "about_twin" and len(calls["generate"]) == n
+    # also when typed with a phone's curly apostrophe, which used to send them to retrieval
+    assert c.post("/api/ask", json={"question": "What\u2019s your purpose?"}).json()["tier"] == "about_twin"
+    clock = c.post("/api/ask", json={"question": "What\u2019s the time?"}).json()
+    assert clock["tier"] == "about_twin" and clock["answer"].startswith("It's ")
+    assert len(calls["generate"]) == n
     # a correction makes the profile stale, so it is written again
     before = calls["profile"]
     c.post("/api/correct", json={"question": "Favourite sport?", "twin_answer": "x", "expected": "Kabaddi, not cricket"})
