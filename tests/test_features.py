@@ -152,6 +152,16 @@ def test_ai_talk_filter_keeps_a_person_who_works_on_ai():
     assert strip_ai_talk("I\u2019m an AI language model. I love biryani.") == "I love biryani."
 
 
+
+def test_choice_with_three_options():
+    from deferral import CHOICE_RE, choice_options
+    opts = lambda q: choice_options(CHOICE_RE.match(q))  # noqa: E731
+    assert opts("Tea or coffee?") == ["Tea", "coffee"]
+    assert opts("Coffee, tea, or juice?") == ["Coffee", "tea", "juice"]      # used to be "Coffee, tea" vs "juice"
+    assert opts("Do you prefer tea, coffee or juice?") == ["tea", "coffee", "juice"]
+    assert opts("Would you rather live in a big, noisy city or a village?") == ["live in a big, noisy city", "a village"]
+
+
 if __name__ == "__main__":
     test_language_detection()
     test_existential_there_and_conjunction_that_are_not_follow_ups()
@@ -163,4 +173,5 @@ if __name__ == "__main__":
     test_talk_needs_model()
     test_mixed_trait_names_both_poles()
     test_ai_talk_filter_keeps_a_person_who_works_on_ai()
+    test_choice_with_three_options()
     print("feature checks passed")

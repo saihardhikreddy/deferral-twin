@@ -90,6 +90,17 @@ def plain(text):
     return (text or "").translate(_CURLY)
 
 
+def choice_options(m):
+    """The options of a CHOICE_RE match. "Coffee, tea or juice?" has three: the pattern's first
+    group holds "Coffee, tea", which used to reach the model as one option. A comma splits it only
+    when every piece is short, so "a big, noisy city or a village" keeps its two options."""
+    a, b = m.group("a").strip(), m.group("b").strip()
+    parts = [x.strip() for x in a.split(",") if x.strip()]
+    if len(parts) > 1 and all(len(x.split()) <= 3 for x in parts):
+        return parts + [b]
+    return [a.rstrip(","), b]
+
+
 def qa_parts(text):
     """'Q: ...\nA: ...' -> (question, answer)."""
     q, _, a = (text or "").partition("\nA:")
@@ -272,11 +283,12 @@ class DeferralAwareTwin:
 
     def _choice(self, query, m, results, context_text):
         """An either-or question, answered by naming one option in a few words, as they do."""
-        a, b = m.group("a").strip(), m.group("b").strip()
+        options = choice_options(m)
         past = [qa_parts(f["text"]) for f in getattr(self.rag, "facts", [])]
         past = [(q, ans) for q, ans in past if " or " in q.lower() and 0 < len(ans.split()) <= 5][:6]
+        quoted = [f'"{o}"' for o in options]
         sp = (f"You are {self.person_name}'s digital twin. Choose what {self.person_name} would choose: "
-              f'"{a}" or "{b}". Reply with only the choice, in one to four words, the way they answer such '
+              f'{", ".join(quoted[:-1])} or {quoted[-1]}. Reply with only the choice, in one to four words, the way they answer such '
               "questions. No explanation." + self._persona_rule() + "\n\n"
               + ("Their past either-or answers:\n" + "\n".join(f"- {q} -> {ans}" for q, ans in past) + "\n\n" if past else "")
               + f"How they tend to behave:\n{self.persona_summary}\n\n"
