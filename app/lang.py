@@ -40,7 +40,14 @@ NOT_A_REFERENCE_RE = re.compile(r"\b(?:is|are|was|were|isn'?t|aren'?t)\s+there\b
                                 re.I)
 
 
+# Typographic apostrophes as plain ones (as deferral.plain does): phones type "Isn\u2019t there ...?",
+# which the plain ' in NOT_A_REFERENCE_RE never matched, so the existential "there" counted as a
+# reference back and a new question was treated as a follow-up.
+_STRAIGHT = str.maketrans({"\u2018": "'", "\u2019": "'", "\u02bc": "'"})
+
+
 def is_follow_up(q, history):
+    q = (q or "").translate(_STRAIGHT)
     return bool(history) and len(q.split()) <= 9 and bool(FOLLOW_RE.search(NOT_A_REFERENCE_RE.sub(" ", q)))
 
 

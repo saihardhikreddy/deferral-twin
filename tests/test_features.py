@@ -36,6 +36,15 @@ def test_existential_there_and_conjunction_that_are_not_follow_ups():
     assert q == "Are there any foods you avoid?"
 
 
+def test_curly_apostrophe_questions_are_not_follow_ups():
+    # Typed on a phone: "Isn’t there ...?" was taken as a follow-up, unlike "Isn't there ...?".
+    h = [{"q": "Tea or coffee?", "a": "Tea"}]
+    for q in ("Isn\u2019t there a dish you miss?", "Aren\u2019t there days you skip?"):
+        assert not lang.is_follow_up(q, h), q
+        assert lang.prepare(q, h, "en") == (q, None)
+    assert lang.is_follow_up("Isn\u2019t that odd?", h)   # a real reference back still counts
+
+
 
 def test_offline_hindi_follow_up_is_all_english():
     # a fake Hindi -> English translator, as the Marian model would answer
@@ -165,6 +174,7 @@ def test_choice_with_three_options():
 if __name__ == "__main__":
     test_language_detection()
     test_existential_there_and_conjunction_that_are_not_follow_ups()
+    test_curly_apostrophe_questions_are_not_follow_ups()
     test_offline_hindi_follow_up_is_all_english()
     test_chat_memory_offline()
     test_telugu_and_hindi()
