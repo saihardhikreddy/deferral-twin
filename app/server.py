@@ -24,6 +24,7 @@ import time
 import traceback
 import zipfile
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
@@ -735,6 +736,19 @@ class RedoIn(BaseModel):
 def create_app(state: State) -> FastAPI:
     api = FastAPI(title="Deferral-Aware Digital Twin")
     S = state
+
+    # A browser lets any website send a POST to localhost: a plain form or a no-cors fetch needs no
+    # preflight. Several actions take no body at all (start the microphone, take a webcam photo,
+    # build, run the benchmark), so a page in another tab could set them off. Only this app's own
+    # page may change anything; requests without an Origin (scripts, curl, tests) still work.
+    @api.middleware("http")
+    async def same_origin_only(request, call_next):
+        if request.method not in ("GET", "HEAD", "OPTIONS"):
+            origin = request.headers.get("origin")
+            cross = origin is not None and urlsplit(origin).netloc != request.headers.get("host", "")
+            if cross or request.headers.get("sec-fetch-site") == "cross-site":
+                return JSONResponse({"detail": "Cross-site request refused."}, status_code=403)
+        return await call_next(request)
 
     def need_session():
         if S.session is None:

@@ -214,5 +214,23 @@ def test_app():
     run()
 
 
+def test_other_websites_cannot_drive_the_app():
+    home = Path(tempfile.mkdtemp())
+    st = server.boot(home, llm="stub", multimodal=False)
+    c = TestClient(server.create_app(st))
+    for headers in ({"Origin": "https://evil.example"}, {"Origin": "null"},
+                    {"Origin": "http://localhost:9999"}, {"Sec-Fetch-Site": "cross-site"}):
+        r = c.post("/api/game/reset", headers=headers)
+        assert r.status_code == 403, (headers, r.status_code)
+        r = c.post("/api/delete", json={"name": "x"}, headers=headers)
+        assert r.status_code == 403, (headers, r.status_code)
+    own = c.post("/api/game/reset", headers={"Origin": "http://testserver"})
+    assert own.status_code != 403, own.text           # the app's own page gets through to the route
+    assert c.post("/api/game/reset").status_code != 403                              # so do scripts
+    assert c.get("/api/status", headers={"Origin": "https://evil.example"}).status_code == 200
+    shutil.rmtree(home, ignore_errors=True)
+
+
 if __name__ == "__main__":
     run()
+    test_other_websites_cannot_drive_the_app()
