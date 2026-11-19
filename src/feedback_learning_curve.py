@@ -109,7 +109,10 @@ def _make_store(pdir, train_rows, tag):
 def _run_curve(store, corrections, k_list, eval_rows, persona_summary, embedder,
                llm_batch_fn, hard_floor, threshold, batch_size):
     curve, added = [], 0
-    for k in sorted(k_list):
+    # A point is labelled with k, so it must really have k corrections behind it. The control
+    # draws on another person's answers, which can run out before this person's pool does; the
+    # slice below then quietly gave fewer, and the point still said k.
+    for k in sorted(k for k in set(k_list) if k <= len(corrections)):
         for r in corrections[added:k]:
             store.add_fact(f"Q: {r['question']}\nA: {r['answer']}",
                            source="user_correction", persist=False)

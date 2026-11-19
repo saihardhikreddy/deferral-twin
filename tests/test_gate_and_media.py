@@ -185,6 +185,31 @@ def test_phase2_summary_counts_deferrals_but_does_not_score_them():
     assert s["confident_coverage"] == 0.0 and summarize([], [])["n_test"] == 0
 
 
+def test_learning_curve_never_labels_a_point_with_more_corrections_than_it_had():
+    import feedback_learning_curve as flc
+
+    class Store:
+        def __init__(self):
+            self.facts = []
+
+        def add_fact(self, text, source, persist):
+            self.facts.append(text)
+
+    store = Store()
+
+    def fake_score(store_, rows, *a):
+        return {"mean_similarity": 0.5, "n_facts": len(store_.facts)}
+
+    real, flc.answer_and_score = flc.answer_and_score, fake_score
+    try:
+        corrections = [{"question": f"Q{i}?", "answer": f"A{i}"} for i in range(7)]
+        curve = flc._run_curve(store, corrections, [10, 0, 5, 5, 20], [], "", None, None, 0.2, 0.5, 2)
+    finally:
+        flc.answer_and_score = real
+    seen = {c["k"]: c["n_facts"] for c in curve}
+    assert seen == {0: 0, 5: 5}          # k=10 and k=20 used to appear, each with only 7
+
+
 if __name__ == "__main__":
     test_boost_never_reaches_the_gate()
     test_video_never_blocks_voice_and_clips_are_cached()
@@ -193,4 +218,5 @@ if __name__ == "__main__":
     test_retrieve_from_an_empty_store()
     test_unmeasured_mac_gives_no_estimate()
     test_phase2_summary_counts_deferrals_but_does_not_score_them()
+    test_learning_curve_never_labels_a_point_with_more_corrections_than_it_had()
     print("gate and media checks passed")
