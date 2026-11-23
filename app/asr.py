@@ -14,12 +14,21 @@ LANG_TOKENS = {"<|en|>": "en", "<|hi|>": "hi", "<|te|>": "te"}
 
 def deva_to_telugu(text):
     """Whisper-small often writes Telugu speech in Devanagari letters. The two Unicode blocks share one layout
-    (both come from ISCII), so shifting each letter by 0x300 gives the Telugu spelling."""
+    (both come from ISCII), so shifting each letter by 0x300 gives the Telugu spelling.
+
+    Only the shared part is shifted. Devanagari's precomposed nukta letters (U+0958-095F) sit where Telugu has
+    other letters or none: क़ became ౘ (TSA), ख़ became ౙ (DZA), and ज़ stayed in Devanagari in the middle of
+    a Telugu word. They are now split into letter + nukta first, and the nukta, which Telugu spelling doesn't
+    mark (its sign shows as a dotted circle in most fonts), is dropped. U+0970-097F were added to Devanagari
+    later and land on Telugu fraction digits, so they are left alone."""
     import unicodedata
+    text = "".join(unicodedata.normalize("NFD", ch) if 0x0958 <= ord(ch) <= 0x095F else ch for ch in text)
     out = []
     for ch in text:
         o = ord(ch)
-        if 0x0900 <= o <= 0x097F and o not in (0x0964, 0x0965):          # keep the danda punctuation
+        if o == 0x093C:                                                   # nukta
+            continue
+        if 0x0900 <= o <= 0x096F and o not in (0x0964, 0x0965):          # keep the danda punctuation
             t = chr(o + 0x300)
             try:
                 unicodedata.name(t)

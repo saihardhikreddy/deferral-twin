@@ -186,6 +186,18 @@ def test_work_profile_tolerates_odd_input():
         assert work.load(d)["title"] == "Nurse"
 
 
+def test_devanagari_telugu_keeps_nukta_letters_apart():
+    from app.asr import deva_to_telugu
+    assert deva_to_telugu("नमस्ते") == "నమస్తే"
+    # precomposed nukta letters, as Whisper writes them: \u0958 क़ used to become ౘ (TSA), \u0959 ख़ ౙ (DZA),
+    # and \u095b ज़ stayed Devanagari
+    assert deva_to_telugu("\u0958\u0932\u092e") == "కలమ"
+    assert deva_to_telugu("\u0959\u092c\u0930") == "ఖబర"
+    assert deva_to_telugu("\u095b\u093f\u0902\u0926\u0917\u0940") == "జిందగీ"
+    assert deva_to_telugu("\u091c\u093c\u0930") == "జర"   # the same letter typed as ज + nukta
+    assert deva_to_telugu("\u097b\u0964") == "\u097b\u0964"   # a later letter with no Telugu twin, and the danda
+
+
 if __name__ == "__main__":
     test_language_detection()
     test_existential_there_and_conjunction_that_are_not_follow_ups()
@@ -200,4 +212,5 @@ if __name__ == "__main__":
     test_ai_talk_filter_keeps_a_person_who_works_on_ai()
     test_choice_with_three_options()
     test_work_profile_tolerates_odd_input()
+    test_devanagari_telugu_keeps_nukta_letters_apart()
     print("feature checks passed")
