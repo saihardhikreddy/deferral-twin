@@ -171,6 +171,21 @@ def test_choice_with_three_options():
     assert opts("Would you rather live in a big, noisy city or a village?") == ["live in a big, noisy city", "a village"]
 
 
+def test_work_profile_tolerates_odd_input():
+    """/api/work and the auto-derived profile pass JSON straight to clean(); odd values used to raise."""
+    import tempfile
+    from app import work
+    assert work.clean({"title": "Civil engineer", "skills": ["AutoCAD", 3, None, " ", "Revit"]})["skills"] == \
+        ["AutoCAD", "3", "Revit"]
+    assert work.clean({"title": "Nurse", "skills": 5})["skills"] == []
+    assert work.clean({"title": "Nurse", "skills": "triage, ICU;  wound care"})["skills"] == ["triage", "ICU", "wound care"]
+    with tempfile.TemporaryDirectory() as d:
+        work.path(d).write_text("[]", encoding="utf-8")        # not a profile: no profile, not a crash
+        assert work.load(d) is None
+        work.save(d, {"title": "Nurse", "skills": []})
+        assert work.load(d)["title"] == "Nurse"
+
+
 if __name__ == "__main__":
     test_language_detection()
     test_existential_there_and_conjunction_that_are_not_follow_ups()
@@ -184,4 +199,5 @@ if __name__ == "__main__":
     test_mixed_trait_names_both_poles()
     test_ai_talk_filter_keeps_a_person_who_works_on_ai()
     test_choice_with_three_options()
+    test_work_profile_tolerates_odd_input()
     print("feature checks passed")

@@ -35,7 +35,7 @@ def path(folder):
 def load(folder):
     try:
         w = json.loads(path(folder).read_text(encoding="utf-8"))
-        return w if (w.get("title") or "").strip() else None
+        return w if isinstance(w, dict) and str(w.get("title") or "").strip() else None
     except (OSError, ValueError):
         return None
 
@@ -53,7 +53,10 @@ def clean(d):
     skills = d.get("skills") or []
     if isinstance(skills, str):
         skills = re.split(r"[,\n;]+", skills)
-    skills = [re.sub(r"\s+", " ", s).strip()[:60] for s in skills if s and s.strip()][:30]
+    elif not isinstance(skills, (list, tuple)):    # e.g. {"skills": 3} from a hand-made request
+        skills = []
+    # Gemini's JSON (and a hand-made request) can hold numbers or null in the list: "AutoCAD", 3, null
+    skills = [re.sub(r"\s+", " ", str(s)).strip()[:60] for s in skills if s is not None and str(s).strip()][:30]
     about = str(d.get("about") or "").strip()[:ABOUT_MAX]
     return {"title": title, "skills": skills, "about": about}
 
