@@ -198,6 +198,17 @@ def test_devanagari_telugu_keeps_nukta_letters_apart():
     assert deva_to_telugu("\u097b\u0964") == "\u097b\u0964"   # a later letter with no Telugu twin, and the danda
 
 
+def test_online_rewrite_that_is_not_english_falls_back():
+    # Gemini sometimes hands the Hindi question back unchanged; retrieval is English, so the local
+    # translator is used instead of passing Hindi on.
+    echo = lambda system, prompt: prompt.rsplit("Last question: ", 1)[1]  # noqa: E731
+    tr = lambda text, src, dst: "What do you drink?" if (src, dst) == ("hi", "en") else None  # noqa: E731
+    assert lang.prepare("आप क्या पीते हैं?", [], "hi", gemini=echo, translator=tr) == ("What do you drink?", None)
+    english = lambda system, prompt: "What do you drink in the morning?"  # noqa: E731
+    assert lang.prepare("आप क्या पीते हैं?", [], "hi", gemini=english, translator=tr) == \
+        ("What do you drink in the morning?", None)
+
+
 if __name__ == "__main__":
     test_language_detection()
     test_existential_there_and_conjunction_that_are_not_follow_ups()
@@ -213,4 +224,5 @@ if __name__ == "__main__":
     test_choice_with_three_options()
     test_work_profile_tolerates_odd_input()
     test_devanagari_telugu_keeps_nukta_letters_apart()
+    test_online_rewrite_that_is_not_english_falls_back()
     print("feature checks passed")

@@ -94,7 +94,9 @@ def prepare(q, history, lang, gemini=None, translator=None):
             out = gemini("Rewrite the last question as one standalone question in English, resolving words like "
                          "'it' or 'that' from the chat. Keep its meaning and person (you/I) exactly. Output only the question.",
                          ask).strip().strip('"')
-            if out:
+            # Memory and retrieval are English: a reply still in Hindi or Telugu (Gemini echoed or
+            # only partly rewrote the question) would retrieve nothing, so use the offline path then.
+            if out and detect(out) == "en":
                 return out.splitlines()[0], None
         except Exception:
             pass
